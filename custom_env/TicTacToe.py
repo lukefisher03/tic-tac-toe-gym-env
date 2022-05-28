@@ -1,4 +1,3 @@
-from typing import Tuple
 import gym
 from gym import Env, spaces
 
@@ -54,10 +53,9 @@ class TicTacToe(Env):
     def __init__(self) -> None:
         super().__init__()
 
-        self.action_space = spaces.MultiDiscrete([3,3])
+        self.action_space = spaces.MultiDiscrete([[0,1,2],[0,1,2]])
         self.observation_space = spaces.MultiDiscrete([[3,3,3] for col in range(3)])
         self.reward_range = (-5, 5)
-
         #initalize an empty game board on each new episode.
         self.gameBoard = [[0,0,0] for col in range(3)]
 
@@ -67,15 +65,31 @@ class TicTacToe(Env):
         the agent will take its turn, and then a second agent will take its turn switching back and forth modifying the gameBoard
         instantiated with each episode.   
         '''
-    def step(self): 
-        '''
-        Is it best to store the game logic within the environment's methods? Or should there be a second TicTacToe class for
-        handling game logic.
-        '''
-        pass
+    def step(self, action): 
+        #For sake of simplicity, our agent always plays as x's. Whoever goes first will be determined randomly before the start of the game.
+        done = False
+        reward = 0
+        x,y = action
+        if self.gameBoard[x,y] != 0:#end the game early and pass extremely negative reward for placing a pieces that's already taken. (cheating)
+            done = True
+            reward = -1000
+        self.gameBoard[x,y] = 1 #Place the agent's piece on the board.
+        
+        winState = checkBoardState(self.gameBoard)
+        if winState == 1:
+            reward = 5
+            done = True
+        elif winState == 2:
+            reward = -5
+            done = True
+        
+        return self.gameBoard, reward, done, {}
+
     def reset(self):
-        pass
+        self.gameBoard = [[0,0,0] for col in range(3)]
+        return self.gameBoard
+        
     def render(self):
-        pass
+        print(self.gameBoard())
     def close(self):
-        pass
+        print('Shutting down the environment...')
