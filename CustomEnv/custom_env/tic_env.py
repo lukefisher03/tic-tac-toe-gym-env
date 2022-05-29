@@ -1,5 +1,5 @@
 import gym
-from gym import Env, spaces
+from gym import spaces
 
 '''
 This is a custom OpenAI gym environment for simulating and training agents to play
@@ -49,9 +49,13 @@ def checkBoardState(board) -> int:
             print(f'p{p} wins by diagonal (bottom left to top right)')
             return p
 
-class TicTacToe(Env):
+class TicTacToe(gym.Env):
+    metadata = {
+        'render.modes' : ['human']
+    }
+
     def __init__(self) -> None:
-        super().__init__()
+        super(TicTacToe, self).__init__()
 
         self.action_space = spaces.MultiDiscrete([[0,1,2],[0,1,2]])
         self.observation_space = spaces.MultiDiscrete([[3,3,3] for col in range(3)])
@@ -88,8 +92,9 @@ class TicTacToe(Env):
     def reset(self):
         self.gameBoard = [[0,0,0] for col in range(3)]
         return self.gameBoard
-        
+
     def render(self):
         print(self.gameBoard())
+
     def close(self):
         print('Shutting down the environment...')
