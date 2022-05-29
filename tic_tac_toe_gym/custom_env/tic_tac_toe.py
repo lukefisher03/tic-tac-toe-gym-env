@@ -57,7 +57,7 @@ class TicTacToe(gym.Env):
     def __init__(self) -> None:
         super(TicTacToe, self).__init__()
 
-        self.action_space = spaces.MultiDiscrete([[0,1,2],[0,1,2]])
+        self.action_space = spaces.MultiDiscrete([3,3])
         self.observation_space = spaces.MultiDiscrete([[3,3,3] for col in range(3)])
         self.reward_range = (-5, 5)
         #initalize an empty game board on each new episode.
