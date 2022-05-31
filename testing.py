@@ -1,5 +1,11 @@
 import gym
 from gym import spaces
+import numpy as np
 
-action_space = spaces.MultiDiscrete([3,3])
-print(action_space.sample())
+my2d = [
+    [0,1,0],
+    [0,0,0],
+    [0,0,1]
+]
+
+print(my2d.count(1))
