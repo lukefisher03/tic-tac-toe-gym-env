@@ -1,3 +1,3 @@
 /testing.py
-/__pycache__/
+__pycache__/
 tic_tac_toe_gym/custom_env/__pycache__/
