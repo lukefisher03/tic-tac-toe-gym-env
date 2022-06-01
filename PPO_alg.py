@@ -8,9 +8,11 @@ from stable_baselines3 import PPO
 p2 = Player2.Player2()
 learning_env = gym.make('TicTacToe-v0',player2=p2)
 
+TSTEPS = int(input("TSTEPS: "))
+
 model = PPO('MlpPolicy', learning_env,learning_rate=0.0003,gamma=0.995, verbose=True)
-model.learn(total_timesteps=400000)
-model.save('models/PPO-400K-TSTEPS')
+model.learn(total_timesteps=TSTEPS)
+model.save(f'models/PPO-{TSTEPS/1000}K-TSTEPS')
 
 epis = 20
 testing_env = gym.make('TicTacToe-v0', player2=p2)
