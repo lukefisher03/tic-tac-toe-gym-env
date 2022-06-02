@@ -11,3 +11,8 @@ class Player2:
             if board[x][y] == 0:
                 taken = False
                 board[x][y] = 2
+    def moveHuman(self, board):
+        taken = True
+        while taken:
+            coors = input('Coordinates(x,y)').split(',')
+            

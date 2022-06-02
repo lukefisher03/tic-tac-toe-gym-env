@@ -16,7 +16,11 @@ This game is played on an empty 3x3 board(represented as a 2d list).
     Rewards: (WIP) The reward space returns 0 for any move. Losing the game(terminal state) yields -5 and winning
               the game yields +5
 '''
-
+INVALID_MOVE_REWARD = -10
+VALID_MOVE_REWARD = 1
+WIN_REWARD = 5
+LOSS_REWARD = -5
+TIE_REWARD = -1
 
 #Returns whether or not someone has won the game. Returns an int with 0 being non-winning state, 1: x wins, 2: o wins, 3: tie.
 def checkBoardState(board) -> int:
@@ -84,11 +88,11 @@ class TicTacToe(gym.Env):
     def step(self, action): 
         #For sake of simplicity, our agent always plays as x's. Whoever goes first will be determined randomly before the start of the game.
         done = False
-        reward = 1 #give a +1 reward for valid actions
+        reward = VALID_MOVE_REWARD #give a +1 reward for valid actions
         x,y = action
         if self.gameBoard[x][y] != 0:#end the game early and pass extremely negative reward for placing a pieces that's already taken. (cheating)
             done = True 
-            reward = 0
+            reward = INVALID_MOVE_REWARD
             print('Invalid Move')
             self.invalidMoves += 1
             return self.gameBoard, reward, done, {} #make sure to end the episode early so as to not waste training time on unhelpful regions.
@@ -97,13 +101,13 @@ class TicTacToe(gym.Env):
         
         winState = checkBoardState(self.gameBoard)
         if winState == 1:
-            reward = 1
+            reward = WIN_REWARD
             done = True
             print('Win')
             self.wins += 1
             return self.gameBoard, reward, done, {}
         elif winState == 3:
-            reward = 0
+            reward = TIE_REWARD
             done = True
             self.ties += 1
             print('Tie')
@@ -118,16 +122,16 @@ class TicTacToe(gym.Env):
         self.p2.move(self.gameBoard)
         winState = checkBoardState(self.gameBoard)
         if winState == 2:
-            reward = 0
+            reward = LOSS_REWARD
             self.losses += 1
             print('Loss')
 
         elif winState == 3:
-            reward = 0
+            reward = TIE_REWARD
             print('Tie')
             self.ties += 1
         else:
-            reward = 1
+            reward = VALID_MOVE_REWARD
         return reward
     def reset(self):
         self.gameBoard = [[0,0,0] for col in range(3)]

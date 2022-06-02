@@ -1,5 +1,3 @@
-from cgi import test
-import random
 import gym
 import Player2
 from tic_tac_toe_gym.custom_env.tic_tac_toe import TicTacToe
@@ -10,12 +8,14 @@ learning_env = gym.make('TicTacToe-v0',player2=p2)
 
 TSTEPS = int(input("TSTEPS: "))
 
-model = PPO('MlpPolicy', learning_env,learning_rate=0.0003,gamma=0.995, verbose=True)
+model = PPO('MlpPolicy', learning_env,learning_rate=0.0003,gamma=0.995, verbose=True, tensorboard_log='./tensor_board/')
 model.learn(total_timesteps=TSTEPS)
-model.save(f'models/PPO-{TSTEPS/1000}K-TSTEPS')
+model.save(f'models/PPO-1MIL-TSTEPS')
+del model
 
 epis = 20
 testing_env = gym.make('TicTacToe-v0', player2=p2)
+model = PPO.load('models/PPO-1MIL-TSTEPS')
 obs = testing_env.reset()
 for epi in range(epis):
     done = False
