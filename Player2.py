@@ -12,7 +12,8 @@ class Player2:
                 taken = False
                 board[x][y] = 2
     def moveHuman(self, board):
+        #TODO: Implement human player
         taken = True
         while taken:
             coors = input('Coordinates(x,y)').split(',')
-            
+

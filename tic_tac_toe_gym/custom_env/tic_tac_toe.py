@@ -1,4 +1,3 @@
-from tabnanny import check
 import gym
 from gym import spaces
 import numpy as np
@@ -16,11 +15,11 @@ This game is played on an empty 3x3 board(represented as a 2d list).
     Rewards: (WIP) The reward space returns 0 for any move. Losing the game(terminal state) yields -5 and winning
               the game yields +5
 '''
-INVALID_MOVE_REWARD = -10
+INVALID_MOVE_REWARD = -100
 VALID_MOVE_REWARD = 1
-WIN_REWARD = 5
-LOSS_REWARD = -5
-TIE_REWARD = -1
+WIN_REWARD = 10
+LOSS_REWARD = -10
+TIE_REWARD = -5
 
 #Returns whether or not someone has won the game. Returns an int with 0 being non-winning state, 1: x wins, 2: o wins, 3: tie.
 def checkBoardState(board) -> int:
