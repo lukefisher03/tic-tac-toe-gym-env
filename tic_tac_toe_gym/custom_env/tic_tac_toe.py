@@ -19,13 +19,15 @@ INVALID_MOVE_REWARD = -100
 VALID_MOVE_REWARD = 1
 WIN_REWARD = 10
 LOSS_REWARD = -10
-TIE_REWARD = -5
+TIE_REWARD = -10
 
 #Returns whether or not someone has won the game. Returns an int with 0 being non-winning state, 1: x wins, 2: o wins, 3: tie.
-def checkBoardState(board) -> int:
+def processBoardState(board) -> int:
+    #convert board to 2d array
+    board = np.reshape(board, (3,3))
     for p in [1,2]:
         for row in board:
-            if row == [p,p,p]:
+            if np.array_equal(row, [p,p,p]):
                 #print(f'p{p} wins by horizontal row')
                 return p
 
@@ -33,7 +35,7 @@ def checkBoardState(board) -> int:
             col = []
             for row in board:
                 col.append(row[i])
-            if col == [p,p,p]:
+            if np.array_equal(col, [p,p,p]):
                 #print(f'p{p} wins by vertical column')
                 return p
 
@@ -42,7 +44,7 @@ def checkBoardState(board) -> int:
         for row in board:
             diag.append(row[i])
             i+=1
-        if diag == [p,p,p]:
+        if np.array_equal(diag, [p,p,p]):
             #print(f'p{p} wins by diagonal (top right to bottom left)')
             return p
 
@@ -51,12 +53,11 @@ def checkBoardState(board) -> int:
         for row in board:
             diag.append(row[i])
             i -= 1
-        if diag == [p,p,p]:
+        if np.array_equal(diag, [p,p,p]):
             #print(f'p{p} wins by diagonal (bottom left to top right)')
             return p
 
-    tie = [row.count(0) for row in board]
-    if sum(tie) == 0:#if the number of 0's on the board is 0 then the game is a tie becuase there are no more spots to fill.
+    if (board == 0).sum() == 0:
         return 3
     return 0
 
@@ -68,15 +69,16 @@ class TicTacToe(gym.Env):
     def __init__(self, player2='') -> None:
         super(TicTacToe, self).__init__()
 
-        self.action_space = spaces.MultiDiscrete([3,3])
-        self.observation_space = spaces.Box(low=0, high=2, shape=(3,3), dtype=np.int64)
+        self.action_space = spaces.Discrete(9)
+        self.observation_space = spaces.MultiDiscrete([3 for space in range(9)]) #0-8 spaces on tic-tac-toe board
         #initalize an empty game board on each new episode.
-        self.gameBoard = [[0,0,0] for col in range(3)]
+        self.gameBoard = np.array([0 for space in range(9)])
         self.p2 = player2
         self.wins = 0
         self.invalidMoves = 0
         self.ties = 0
         self.losses = 0
+        self.isTurn =True
 
         '''
         side note: Initally the gameBoard would be declared in the global space along with the algorithm. But in python
@@ -84,61 +86,61 @@ class TicTacToe(gym.Env):
         the agent will take its turn, and then a second agent will take its turn switching back and forth modifying the gameBoard
         instantiated with each episode.   
         '''
-    def step(self, action): 
-        #For sake of simplicity, our agent always plays as x's. Whoever goes first will be determined randomly before the start of the game.
-        done = False
-        reward = VALID_MOVE_REWARD #give a +1 reward for valid actions
-        x,y = action
-        if self.gameBoard[x][y] != 0:#end the game early and pass extremely negative reward for placing a pieces that's already taken. (cheating)
-            done = True 
-            reward = INVALID_MOVE_REWARD
-            print('Invalid Move')
-            self.invalidMoves += 1
-            return self.gameBoard, reward, done, {} #make sure to end the episode early so as to not waste training time on unhelpful regions.
+    def step(self, a): 
+        '''
+        The action space is presented as a singular scalar value representing a space on a flattened tic-tac-toe board. In this case it's our job to provide the correct
+        rewards based on the given action. Primarily, we need to give guidelines for our agent. Reward it for winning, penalize it for losing, and heavily penalize it for cheating.
+        Additionally, another scenario is a tie. By defualt we could pass a neutral 0 reward. However, passing a mildly negative reward could communicate that a tie is a 
+        suboptimal state. By the credit assignment problem we can pass an extremely mild positive reward for simply making valid moves as they are necessary for achieving a 
+        winning state.
+        '''
 
-        self.gameBoard[x][y] = 1 #Place the agent's piece on the board.
-        
-        winState = checkBoardState(self.gameBoard)
-        if winState == 1:
-            reward = WIN_REWARD
-            done = True
-            print('Win')
+        if self.gameBoard[a] != 0:
+            print('INVALID MOVE')
+            return self.gameBoard, INVALID_MOVE_REWARD, True, {}
+
+        self.gameBoard[a] = 1
+        if self.p2.humanPlayer:
+            self.render()
+        winner = processBoardState(self.gameBoard)
+        if winner == 1:
+            print('WIN')
             self.wins += 1
-            return self.gameBoard, reward, done, {}
-        elif winState == 3:
-            reward = TIE_REWARD
-            done = True
+            return self.gameBoard, WIN_REWARD, True, {}
+        elif winner == 3:
+            print('TIE')
             self.ties += 1
-            print('Tie')
-            return self.gameBoard, reward, done, {}
+            return self.gameBoard, TIE_REWARD, True, {}
         
-        p2WinState = self.p2Move()
-        reward = p2WinState
-        if p2WinState != 1:
-            done = True
-        return self.gameBoard, reward, done, {}
-    def p2Move(self) -> int:
-        self.p2.move(self.gameBoard)
-        winState = checkBoardState(self.gameBoard)
-        if winState == 2:
-            reward = LOSS_REWARD
-            self.losses += 1
-            print('Loss')
-
-        elif winState == 3:
-            reward = TIE_REWARD
-            print('Tie')
-            self.ties += 1
+        if not self.p2.humanPlayer:
+            self.p2.move(self.gameBoard)
         else:
-            reward = VALID_MOVE_REWARD
-        return reward
+            self.p2.moveHuman(self.gameBoard)
+        winner2 = processBoardState(self.gameBoard)
+
+        if winner2 == 2:
+            print('LOSS')
+            self.losses += 1
+            return self.gameBoard, LOSS_REWARD, True, {}
+        elif winner2 == 3:
+            print('TIE')
+            self.ties += 1
+            return self.gameBoard, TIE_REWARD, True, {}
+    
+        return self.gameBoard, VALID_MOVE_REWARD, False, {}
+          
     def reset(self):
-        self.gameBoard = [[0,0,0] for col in range(3)]
+        self.gameBoard = np.array([0 for space in range(9)])
         return self.gameBoard
 
     def render(self, mode='human'):
-        print(self.gameBoard)
-        print('\n\n')
+        s = ''
+        for i, val in enumerate(self.gameBoard):
+            if i % 3 == 0:
+                s+='\n'
+            s += f' {val} ' 
+
+        print(s)
 
     def close(self):
         print('Shutting down the environment...')
