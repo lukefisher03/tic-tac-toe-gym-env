@@ -2,18 +2,22 @@
 import random
 
 class Player2:
+    def __init__(self, humanPlayer=False) -> None:
+        self.humanPlayer = humanPlayer
+        
     def move(self, board) -> None:
         #print('p2 moving')
         taken = True
         while taken:
-            x = random.randrange(0,3)
-            y = random.randrange(0,3)
-            if board[x][y] == 0:
+            spot = random.randrange(0,9)
+            if board[spot] == 0:
                 taken = False
-                board[x][y] = 2
+                board[spot] = 2
     def moveHuman(self, board):
         #TODO: Implement human player
         taken = True
         while taken:
-            coors = input('Coordinates(x,y)').split(',')
-
+            spot = int(input('Input desired spot: '))
+            if board[spot] == 0:
+                taken = False
+                board[spot] = 2
