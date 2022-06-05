@@ -2,8 +2,8 @@
 import random
 
 class Player2:
-    def __init__(self, humanPlayer=False) -> None:
-        self.humanPlayer = humanPlayer
+    def __init__(self, agent=0) -> None:
+        self.agent = agent
         
     def move(self, board) -> None:
         #print('p2 moving')
@@ -21,3 +21,6 @@ class Player2:
             if board[spot] == 0:
                 taken = False
                 board[spot] = 2
+    def moveAI(self, board, model):
+        action, _state = model.predict(board)
+        board[action] = 2

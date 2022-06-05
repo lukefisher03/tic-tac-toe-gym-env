@@ -1,6 +1,7 @@
 import gym
 from gym import spaces
 import numpy as np
+from stable_baselines3 import PPO
 
 
 '''
@@ -16,10 +17,10 @@ This game is played on an empty 3x3 board(represented as a 2d list).
               the game yields +5
 '''
 INVALID_MOVE_REWARD = -100
-VALID_MOVE_REWARD = 1
-WIN_REWARD = 10
-LOSS_REWARD = -10
-TIE_REWARD = -10
+VALID_MOVE_REWARD = 10
+WIN_REWARD = 100
+LOSS_REWARD = -100
+TIE_REWARD = 0
 
 #Returns whether or not someone has won the game. Returns an int with 0 being non-winning state, 1: x wins, 2: o wins, 3: tie.
 def processBoardState(board) -> int:
@@ -78,7 +79,9 @@ class TicTacToe(gym.Env):
         self.invalidMoves = 0
         self.ties = 0
         self.losses = 0
-        self.isTurn =True
+
+        if self.p2.agent == 2:
+            self.p2Model = PPO.load('./models/PPO-OPTIMIZER')
 
         '''
         side note: Initally the gameBoard would be declared in the global space along with the algorithm. But in python
@@ -97,10 +100,12 @@ class TicTacToe(gym.Env):
 
         if self.gameBoard[a] != 0:
             print('INVALID MOVE')
+            self.invalidMoves += 1
+            self.render()
             return self.gameBoard, INVALID_MOVE_REWARD, True, {}
 
         self.gameBoard[a] = 1
-        if self.p2.humanPlayer:
+        if self.p2.agent == 1:
             self.render()
         winner = processBoardState(self.gameBoard)
         if winner == 1:
@@ -112,10 +117,13 @@ class TicTacToe(gym.Env):
             self.ties += 1
             return self.gameBoard, TIE_REWARD, True, {}
         
-        if not self.p2.humanPlayer:
+        if self.p2.agent == 0:
             self.p2.move(self.gameBoard)
-        else:
+        elif self.p2.agent == 1:
             self.p2.moveHuman(self.gameBoard)
+        elif self.p2.agent == 2:
+            self.p2.moveAI(self.gameBoard, self.p2Model)
+
         winner2 = processBoardState(self.gameBoard)
 
         if winner2 == 2:
