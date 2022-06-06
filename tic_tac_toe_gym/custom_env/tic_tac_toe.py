@@ -17,10 +17,10 @@ This game is played on an empty 3x3 board(represented as a 2d list).
               the game yields +5
 '''
 INVALID_MOVE_REWARD = -100
-VALID_MOVE_REWARD = 10
-WIN_REWARD = 100
-LOSS_REWARD = -100
-TIE_REWARD = 0
+VALID_MOVE_REWARD = 1
+WIN_REWARD = 10
+LOSS_REWARD = -10
+TIE_REWARD = -5
 
 #Returns whether or not someone has won the game. Returns an int with 0 being non-winning state, 1: x wins, 2: o wins, 3: tie.
 def processBoardState(board) -> int:
@@ -101,7 +101,6 @@ class TicTacToe(gym.Env):
         if self.gameBoard[a] != 0:
             print('INVALID MOVE')
             self.invalidMoves += 1
-            self.render()
             return self.gameBoard, INVALID_MOVE_REWARD, True, {}
 
         self.gameBoard[a] = 1
